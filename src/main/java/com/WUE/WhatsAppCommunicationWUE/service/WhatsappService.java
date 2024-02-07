@@ -1,8 +1,8 @@
 package com.WUE.WhatsAppCommunicationWUE.service;
 
-import com.WUE.WhatsAppCommunicationWUE.dto.TemplateVariables;
-import com.WUE.WhatsAppCommunicationWUE.dto.WhatsappRequestDto;
-import com.WUE.WhatsAppCommunicationWUE.dto.WhatsappRequestDtoForExternalApi;
+import com.WUE.WhatsAppCommunicationWUE.dto.SendMessageDto.WhatsappRequestDto;
+import com.WUE.WhatsAppCommunicationWUE.dto.SendMessageDto.WhatsappRequestDtoForExternalApi;
+import com.WUE.WhatsAppCommunicationWUE.dto.TemplateDto.TemplatesResponseDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
@@ -13,6 +13,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @Slf4j
@@ -34,7 +35,7 @@ public class WhatsappService {
         WhatsappRequestDtoForExternalApi payloadForExternalApi = WhatsappRequestDtoForExternalApi.builder()
                 .recipients(numbersList)
                 .template_name(payload.getTemplateName())
-                .template_variables(TemplateVariables.builder()
+                .template_variables(WhatsappRequestDtoForExternalApi.TemplateVariables.builder()
                         .variable1(usernamesString)
                         .variable2(payload.getMessageBody())
                         .variable3(payload.getMessageFooter())
@@ -49,5 +50,20 @@ public class WhatsappService {
                 request,
                 Object.class);
         return ResponseEntity.ok(response.getBody());
+    }
+
+    public ResponseEntity<?> getTemplateNames() {
+
+
+        ResponseEntity<TemplatesResponseDto> response = restTemplate.getForEntity(
+                "http://example.com/api/resource",
+                TemplatesResponseDto.class);
+
+        List<String> templateNames = new ArrayList<>();
+
+        for (TemplatesResponseDto.DataItem dataItem : Objects.requireNonNull(response.getBody()).getData()) {
+            templateNames.add(dataItem.getName());
+        }
+        return ResponseEntity.ok(templateNames);
     }
 }

@@ -1,4 +1,4 @@
-package com.WUE.WhatsAppCommunicationWUE.dto;
+package com.WUE.WhatsAppCommunicationWUE.dto.SendMessageDto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
