@@ -14,13 +14,17 @@ public class WhatsappController {
     private WhatsappService whatsappService;
 
     @PostMapping("/sendMessage")
-    public ResponseEntity<?> sendMessage(@RequestBody WhatsappRequestDto payload) {
-       return whatsappService.sendMessage(payload);
+    public ResponseEntity<?> sendMessage(@RequestBody WhatsappRequestDto payload, @RequestParam String user) {
+       return whatsappService.sendMessage(payload,user);
     }
 
     @GetMapping("/allTemplateNames")
     public ResponseEntity<?> getTemplatesNames() {
         return whatsappService.getTemplateNames();
+    }
+    @GetMapping("/templateUsedCountAndDetails/{templateName}")
+    public ResponseEntity<?> templateUsedCountAndDetails(@PathVariable String templateName, @RequestParam String user) {
+        return whatsappService.templateUsedCountAndDetails(templateName,user);
     }
 
 }

@@ -3,6 +3,8 @@ package com.WUE.WhatsAppCommunicationWUE.service;
 import com.WUE.WhatsAppCommunicationWUE.dto.SendMessageDto.WhatsappRequestDto;
 import com.WUE.WhatsAppCommunicationWUE.dto.SendMessageDto.WhatsappRequestDtoForExternalApi;
 import com.WUE.WhatsAppCommunicationWUE.dto.TemplateDto.TemplatesResponseDto;
+import com.WUE.WhatsAppCommunicationWUE.model.WhatsappTemplateAnalytics;
+import com.WUE.WhatsAppCommunicationWUE.repository.WhatsappTemplateAnalyticsRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
@@ -22,9 +24,11 @@ public class WhatsappService {
 
     @Autowired
     RestTemplate restTemplate;
+    @Autowired
+    WhatsappTemplateAnalyticsRepository templateAnalyticsRepository;
 
 
-    public ResponseEntity<?> sendMessage(WhatsappRequestDto payload) {
+    public ResponseEntity<?> sendMessage(WhatsappRequestDto payload, String user) {
 
 
         List<String> numbersList = new ArrayList<>(payload.getPhoneNumbersAndUsernames().keySet());
@@ -50,6 +54,21 @@ public class WhatsappService {
                 HttpMethod.POST,
                 new HttpEntity<>(payloadForExternalApi),
                 Object.class);
+        WhatsappTemplateAnalytics oldAnalytics = templateAnalyticsRepository.findByTemplateNameAndTemplateUsedByUser(payload.getTemplateName(), user);
+
+        if (oldAnalytics != null) {
+            oldAnalytics.setTotalCountOfMessagesSent(oldAnalytics.getTotalCountOfMessagesSent() + numbersList.size());
+            oldAnalytics.setTotalCountOfTemplateUsage(oldAnalytics.getTotalCountOfTemplateUsage() + 1);
+            templateAnalyticsRepository.save(oldAnalytics);
+        } else {
+            WhatsappTemplateAnalytics analytics = new WhatsappTemplateAnalytics();
+            analytics.setTemplateName(payload.getTemplateName());
+            analytics.setTemplateUsedByUser(user);
+            analytics.setTotalCountOfTemplateUsage(1L);
+            analytics.setTotalCountOfMessagesSent((long) numbersList.size());
+            templateAnalyticsRepository.save(analytics);
+        }
+
         return ResponseEntity.ok(response.getBody());
     }
 
@@ -59,9 +78,17 @@ public class WhatsappService {
                 "http://100.26.244.18:5000/approved_templates",
                 TemplatesResponseDto.class).getBody();
 
-        return ResponseEntity.ok( Objects.requireNonNull(response).getData().stream()
+        return ResponseEntity.ok(Objects.requireNonNull(response).getData().stream()
                 .map(TemplatesResponseDto.DataItem::getName)
                 .collect(Collectors.toList()));
     }
 
+    public ResponseEntity<?> templateUsedCountAndDetails(String templateName, String user) {
+
+//        templateName = templateName.toLowerCase();
+        WhatsappTemplateAnalytics analytics = templateAnalyticsRepository
+                .findByTemplateNameAndTemplateUsedByUser(templateName, user);
+        return ResponseEntity.ok(analytics);
+
+    }
 }
