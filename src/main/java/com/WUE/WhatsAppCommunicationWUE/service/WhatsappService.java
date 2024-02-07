@@ -14,6 +14,7 @@ import org.springframework.web.client.RestTemplate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -42,28 +43,25 @@ public class WhatsappService {
                         .build())
                 .build();
         System.out.println(payloadForExternalApi);
-        HttpEntity<?> request = new HttpEntity<>(payloadForExternalApi);
+
 
         ResponseEntity<Object> response = restTemplate.exchange(
                 "http://54.84.143.209:5000/send",
                 HttpMethod.POST,
-                request,
+                new HttpEntity<>(payloadForExternalApi),
                 Object.class);
         return ResponseEntity.ok(response.getBody());
     }
 
     public ResponseEntity<?> getTemplateNames() {
 
+        TemplatesResponseDto response = restTemplate.getForEntity(
+                "http://100.26.244.18:5000/approved_templates",
+                TemplatesResponseDto.class).getBody();
 
-        ResponseEntity<TemplatesResponseDto> response = restTemplate.getForEntity(
-                "http://example.com/api/resource",
-                TemplatesResponseDto.class);
-
-        List<String> templateNames = new ArrayList<>();
-
-        for (TemplatesResponseDto.DataItem dataItem : Objects.requireNonNull(response.getBody()).getData()) {
-            templateNames.add(dataItem.getName());
-        }
-        return ResponseEntity.ok(templateNames);
+        return ResponseEntity.ok( Objects.requireNonNull(response).getData().stream()
+                .map(TemplatesResponseDto.DataItem::getName)
+                .collect(Collectors.toList()));
     }
+
 }
