@@ -22,8 +22,8 @@ public class WhatsappController {
     public ResponseEntity<?> getTemplatesNames() {
         return whatsappService.getTemplateNames();
     }
-    @GetMapping("/templateUsedCountAndDetails/{templateName}")
-    public ResponseEntity<?> templateUsedCountAndDetails(@PathVariable String templateName, @RequestParam String user) {
+    @GetMapping("/templateUsedCountAndDetails/{templateName}/{user}")
+    public ResponseEntity<?> templateUsedCountAndDetails(@PathVariable String templateName, @PathVariable String user) {
         return whatsappService.templateUsedCountAndDetails(templateName,user);
     }
 
